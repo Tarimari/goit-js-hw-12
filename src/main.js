@@ -1,7 +1,11 @@
 
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
+import iziToast from "izitoast";
+import "izitoast/dist/css/iziToast.min.css";
 
+
+const axios = require(`axios`).default;
 const form = document.querySelector(`.submit-form`);
 const list = document.querySelector(`.gallery`);
 form.addEventListener(`submit`, searchRequest);
