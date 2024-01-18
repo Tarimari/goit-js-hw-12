@@ -39,7 +39,7 @@
   display: flex;
   margin-top: 0px;
   padding: 8px 16px 8px 16px;
-  width: 91px;
+  width: auto;
   height: 40px;
 
   background-color: rgba(78, 117, 255, 1);

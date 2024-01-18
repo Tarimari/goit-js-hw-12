@@ -3,28 +3,62 @@ import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
+import axios from 'axios';
 
 
-const axios = require(`axios`).default;
+// const axios = require(`axios`).default;
+let currentPage = 1;
+let characteristics;
+const perPage = 40;
 const form = document.querySelector(`.submit-form`);
 const list = document.querySelector(`.gallery`);
+const btnMore = document.querySelector(`.js-more`);
+const loading = document.querySelector(`.js-loading`)
 form.addEventListener(`submit`, searchRequest);
+btnMore.addEventListener(`click`, onLoad);
 
-
+function onLoad() {
+  currentPage += 1;
+  getRequest(characteristics)
+    .then(data => {
+            list.insertAdjacentHTML(`beforeend`,createMarkup(data.hits))
+            initializeLightbox();
+        })
+        .catch(err => console.log(err))
+    
+}
 function searchRequest(evt) {
     evt.preventDefault();
-    list.innerHTML = `<span class="loader"></span>`;
-    const characteristics = evt.currentTarget.elements.search.value;
-    getRequest(characteristics)
-        .then(data => {
-            if (data.hits.length === 0)
+  loading.innerHTML = `<span class="loader"></span>`;
+  if (evt.currentTarget.elements.search.value !== characteristics) {
+    list.innerHTML = ``;
+  }
+  characteristics = evt.currentTarget.elements.search.value;
+  
+  getRequest(characteristics)  
+    .then(data => {
+      if (data.hits.length === 0)
                  { iziToast.show({
                     message: '❌ Sorry, there are no images matching your search query. Please try again!'
                  });
                 list.innerHTML = ``;
-                return;}
-            list.innerHTML = createMarkup(data.hits)
-            initializeLightbox();
+        return;
+      }
+            list.insertAdjacentHTML(`beforeend`,createMarkup(data.hits))
+      initializeLightbox();
+      console.log(data)
+      if (currentPage === 1) {
+        btnMore.hidden = false;
+      }
+      console.log(currentPage)
+      console.log(data.totalHits)
+      console.log(perPage)
+      if (currentPage > data.totalHits / perPage) {
+        btnMore.hidden = true;
+        iziToast.show({
+                    message: "We're sorry, but you've reached the end of search results."
+                 });
+      }
         })
         .catch(err => console.log(err))
     
@@ -58,17 +92,13 @@ function createMarkup(arr) {
    `).join(``)
 }
 
-function getRequest(characteristics) {
+async function getRequest(characteristics) {
 
     const BASE_URL = `https://pixabay.com/api/`;
     const API_KEY = `41768952-3eb5a1819d194e4ebd739434d`
-    return fetch(`${BASE_URL}?key=${API_KEY}&q=${characteristics}&image_type=photo&orientation=horizontal&safesearch=true`)
-        .then(resp => {
-            if (!resp.ok) {
-            throw new Error(resp.statusText)
-            }
-            return resp.json()
-    })
+  const response = await axios.get(`${BASE_URL}?key=${API_KEY}&q=${characteristics}
+  &image_type=photo&orientation=horizontal&safesearch=true&per_page=${perPage}&page=${currentPage}`)
+    return response.data
 
 }
 
