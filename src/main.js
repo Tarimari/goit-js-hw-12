@@ -6,7 +6,6 @@ import "izitoast/dist/css/iziToast.min.css";
 import axios from 'axios';
 
 
-// const axios = require(`axios`).default;
 let currentPage = 1;
 let characteristics;
 const perPage = 40;
@@ -17,21 +16,28 @@ const loading = document.querySelector(`.js-loading`)
 form.addEventListener(`submit`, searchRequest);
 btnMore.addEventListener(`click`, onLoad);
 
-function onLoad() {
+function onLoad() { 
   currentPage += 1;
   getRequest(characteristics)
     .then(data => {
             list.insertAdjacentHTML(`beforeend`,createMarkup(data.hits))
             initializeLightbox();
-        })
+            const card = document.querySelector(`.gallery__item`).getBoundingClientRect().height;
+      window.scrollBy(
+        {
+                top: card * 2,
+                behavior: `smooth`
+        });
+                  })
         .catch(err => console.log(err))
-    
+   
 }
 function searchRequest(evt) {
     evt.preventDefault();
   loading.innerHTML = `<span class="loader"></span>`;
   if (evt.currentTarget.elements.search.value !== characteristics) {
     list.innerHTML = ``;
+    currentPage = 1;
   }
   characteristics = evt.currentTarget.elements.search.value;
   
@@ -41,23 +47,23 @@ function searchRequest(evt) {
                  { iziToast.show({
                     message: '❌ Sorry, there are no images matching your search query. Please try again!'
                  });
-                list.innerHTML = ``;
+        loading.innerHTML = ``;
+        btnMore.classList.add(`search-btn-hidden`);
         return;
       }
-            list.insertAdjacentHTML(`beforeend`,createMarkup(data.hits))
+      loading.innerHTML = ``;
+      list.insertAdjacentHTML(`beforeend`,createMarkup(data.hits))
       initializeLightbox();
-      console.log(data)
       if (currentPage === 1) {
-        btnMore.hidden = false;
+        btnMore.classList.remove(`search-btn-hidden`);
       }
-      console.log(currentPage)
-      console.log(data.totalHits)
-      console.log(perPage)
       if (currentPage > data.totalHits / perPage) {
-        btnMore.hidden = true;
-        iziToast.show({
-                    message: "We're sorry, but you've reached the end of search results."
-                 });
+        btnMore.classList.add(`search-btn-hidden`);
+        iziToast.show(
+        {
+          message: "We're sorry, but you've reached the end of search results."
+        }
+        );
       }
         })
         .catch(err => console.log(err))
@@ -109,3 +115,4 @@ function initializeLightbox() {
     });
     instance.refresh();
 }
+
